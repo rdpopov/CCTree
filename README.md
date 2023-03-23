@@ -38,8 +38,15 @@ Plugin generates symbol dependency tree (aka call tree, call graph) in real-time
 ## Vim installation
 To use with [vundle](https://github.com/gmarik/Vundle.vim) (recommended) simply add:
 
+
 ```vim
 Plugin 'hari-rangarajan/CCTree' 
 ```
 
 in your .vimrc
+
+## Neovim kinda works too
+Use with ["dhananjaylatkar/cscope_maps.nvim"]("https://github.com/dhananjaylatkar/cscope_maps.nvim")
+to re-introduce some of the functionality to neovim. Doesn't work fully, but you
+can at least load a cscope db and generate the tree. But sometimes some of the
+symbols don't translate properly, and you cant jump to it.

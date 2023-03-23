@@ -974,14 +974,14 @@ let s:CharMaps = {
 " The encoding needs to be changed to 8-bit, otherwise we can't swap special
 " 8-bit characters; restore after done
 function! s:CharMaps.mInitTranslator() dict
-        if self.mapkind ==  'Alpha'
+        if self.mapkind ==  'Alpha' && !has("nvim") " nvim has no encoding switching -.-
             let self.savedEncoding = &encoding
             let &encoding="latin1"
         endif
 endfunction
 
 function! s:CharMaps.mDoneTranslator() dict
-        if self.mapkind ==  'Alpha'
+        if self.mapkind ==  'Alpha' && !has("nvim") " nvim has no encoding switching -.-
             let &encoding=self.savedEncoding
         endif
 endfunction
@@ -3443,23 +3443,46 @@ function! s:CCTreeGlobals.mLoadBufferFromKeyword()
     catch
         call s:CCTreeUtils.mWarningMsg('No buffer to load file')
     finally
-        if (cscope_connection() > 0)
-            try
-                exec "cs find g ". hiKeyword
-            catch
-                " cheap hack
-                exec "cs find f ". hiKeyword
-            endtry
-        else
-            try
-                " Ctags is smart enough to figure the path
-                exec "tag ".fnamemodify(hiKeyword, ":t")
-            catch /^Vim\%((\a\+)\)\=:E433/
-                call s:CCTreeUtils.mWarningMsg('Tag file not found')
-            catch /^Vim\%((\a\+)\)\=:E426/
-                call s:CCTreeUtils.mWarningMsg('Tag '. hiKeyword .' not found')
-                wincmd p
-            endtry
+        " NOTE: it has to have a certain plugin 'https://github.com/dhananjaylatkar/cscope_maps.nvim'
+        " to reintroduce the cscope functionaity a little bit
+        if has("nvim-0.9")
+            if has("Cscope")
+                try
+                    exec "Cscope find g ". hiKeyword
+                catch
+                    " cheap hack
+                    exec "Csope find f ". hiKeyword
+                endtry
+            else
+                try
+                    " Ctags is smart enough to figure the path
+                    exec "tag ".fnamemodify(hiKeyword, ":t")
+                catch /^Vim\%((\a\+)\)\=:E433/
+                    call s:CCTreeUtils.mWarningMsg('Tag file not found')
+                catch /^Vim\%((\a\+)\)\=:E426/
+                    call s:CCTreeUtils.mWarningMsg('Tag '. hiKeyword .' not found')
+                    wincmd p
+                endtry
+            endif
+        else 
+            if (cscope_connection() > 0)
+                try
+                    exec "cs find g ". hiKeyword
+                catch
+                    " cheap hack
+                    exec "cs find f ". hiKeyword
+                endtry
+            else
+                try
+                    " Ctags is smart enough to figure the path
+                    exec "tag ".fnamemodify(hiKeyword, ":t")
+                catch /^Vim\%((\a\+)\)\=:E433/
+                    call s:CCTreeUtils.mWarningMsg('Tag file not found')
+                catch /^Vim\%((\a\+)\)\=:E426/
+                    call s:CCTreeUtils.mWarningMsg('Tag '. hiKeyword .' not found')
+                    wincmd p
+                endtry
+            endif
         endif
     endtry
 endfunction
